@@ -2,15 +2,15 @@
 # It is not intended for manual editing.
 [[package]]
 name = "ctchi"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "glotitude_hq"
 version = "0.1.0"
 dependencies = [
- "ctchi 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ctchi 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
-"checksum ctchi 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1a6d86c40579d6c5b6f2ec9c616d4b48085069262466c377f94f7a9ba8691cdd"
+"checksum ctchi 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1d0a6f6042cae35b95f3096cd3c08569b1f4f023ecb0e82403fc504c76b0ef6a"
