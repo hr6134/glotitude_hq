@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. День четвёртый</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+<div class="header">
+    <a href="/">Home</a>
+    <a href="/blog">Блог</a>
+</div>
+
+<div class="content">
+    <h4 class="article_title">Ctchi. День четвёртый</h4>
+
+    <p>
+        Это точно четвёртый пост, но я уже даже не уверен что это четвёртый день. Макросы, макросы никогда не кончаются.
+    </p>
+
+    <p>
+        Спустя три дня, я смог написать маломальский процедурный макрос (с аттрибутами). Даже не знаю как правильно его
+        назвать. В Rust целых три вида макросов. И я бы ещё сделал десяток подвидов. И каждый из них ломает тебя по разному,
+        но полностью. Изначально я хотел сделать такой макрос, где сам метод определяет логику рендера (и когда-нибудь я
+        так и сделаю), но в результате остановился на более простом варианте, который просто умеет матчить роут и html
+        файл.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[static_page("/", "index.html")]
+                fn index()-> Route {}
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        В результате у меня есть представление и о том как сделать лучше, но пара дополнительных дней проведённых в
+        попытках найти хорошие примеры пугает меня до чёртиков. Я не буду тут рассказывать как устроен макрос и что я
+        сделал, чтобы он работал, я хочу сделать отдельную подробную статью и отдельный репозиторий с примерами, который
+        я буду наполнять после создания очередного монстра (надо будет назвать его кунцкамера). Могу лишь показать,
+        что получилось в результате:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[proc_macro_attribute]
+                pub fn static_page(args: TokenStream, input: TokenStream) -&#x3E; TokenStream {
+                    let func = syn::parse_macro_input!(input as syn::ItemFn);
+
+                    let attrs = parse_macro_input!(args as AttributeArgs);
+
+                    let path = match &#x26;attrs[0] {
+                        NestedMeta::Lit(syn::Lit::Str(lit)) =&#x3E; Ok(lit.value()),
+                        _ =&#x3E; Err(&#x22;No path&#x22;),
+                    }.unwrap();
+
+                    let file = match &#x26;attrs[1] {
+                        NestedMeta::Lit(syn::Lit::Str(lit)) =&#x3E; Ok(lit.value()),
+                        _ =&#x3E; Err(&#x22;No file&#x22;),
+                    }.unwrap();
+
+                    let i = &#x26;func.sig.ident;
+
+                    let inside_ident = Ident::new(&#x26;format!(&#x22;new_{}&#x22;, i), Span::call_site());
+
+                    let gen = quote! {
+                        fn #inside_ident(prefix: &#x26;str) -&#x3E; String {
+                            use std::fs;
+                            let content = fs::read_to_string(format!(&#x22;{}/{}&#x22;, prefix, #file))
+                                .unwrap_or_else(|error| { error.to_string() });
+                            content
+                        }
+
+                        fn #i() -&#x3E; Route {
+                            Route {
+                                path: #path,
+                                render_action: #inside_ident,
+                            }
+                        }
+                    };
+
+                    gen.into()
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Выше можно найти прекрасные примеры того как не надо называть переменные и обрабатывать ошибки. Ключевая
+        концепция в том, что я создаю код двух функций, одна из которых умеет читать файл по указанному пути, а вторая (
+        с именем оригинальной функции) создавать структуру Route, которая хранит в себе путь и действие.
+    </p>
+
+    <p>
+        Понятно, что добавление этого кода сломало мне часть функционала, например, работу со статикой, в результате
+        мне пришлось срочно изучать как работают замыкания и как возвращать функцию из функции.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                fn read_static(file_pth: &str) -> impl Fn(&str) -> String + '_ {
+                    move |pref| -> String {
+                        use std::fs;
+                        let content = fs::read_to_string(format!("{}/{}", pref, file_pth))
+                            .unwrap_or_else(|error| { error.to_string() });
+                        content
+                    }
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Видите очередного уродца вида '_? Вот и я вижу. И я не имею ни малейшего понятия, что он делает с временем жизни.
+        Заботливый компилятор отказывался что-либо делать пока я не выцарапаю у себя на мониторе магические руны. Теперь
+        работает, светится и одаряет меня потрясающим ощущением, что когда-нибудь я пожалею о содеянном.
+    </p>
+
+    <p>
+        При создании этого кода мне помогли исходники проектов rocket, actix-web, issue в проекте syn и поддержка коллег :)
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.05.12
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>

@@ -11,7 +11,8 @@ fn main() {
     routes.add_route("/blog/1", "static/blog/first_day.html");
     routes.add_route("/blog/2", "static/blog/second_day.html");
     routes.add_route("/blog/3", "static/blog/third_day.html");
-    routes.add_route("/404", "static/404.html");
+    routes.add_route("/blog/4", "static/blog/forth_day.html");
+//    routes.add_route("/404", "static/404.html");
 
     let configuration = Config {
         bind_path: "138.197.210.225:80",
