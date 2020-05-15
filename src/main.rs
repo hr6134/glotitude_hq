@@ -1,28 +1,43 @@
 extern crate ctchi;
 
-use ctchi::core::ctchi::{Ctchi, Config};
-use ctchi::core::routes::Routes;
+use ctchi::core::app::{Ctchi, Config};
+use ctchi::core::routes::{Routes, Route};
+
+use ctchi_codegen::static_page;
+
+#[static_page("/", "index.html")]
+fn index() -> Route {}
+
+#[static_page("/blog", "blog.html")]
+fn blog() -> Route {}
+
+#[static_page("/blog/1", "blog/first_day.html")]
+fn blog1() -> Route {}
+
+#[static_page("/blog/2", "blog/second_day.html")]
+fn blog2() -> Route {}
+
+#[static_page("/blog/3", "blog/third_day.html")]
+fn blog3() -> Route {}
+
+#[static_page("/blog/4", "blog/forth_day.html")]
+fn blog4() -> Route {}
+
+#[static_page("/blog/5", "blog/fifth_day.html")]
+fn blog5() -> Route {}
 
 fn main() {
     let mut routes = Routes::new();
-    routes.add_route("/", "static/index.html");
-    routes.add_route("/favicon.ico", "static/404.html");
-    routes.add_route("/blog", "static/blog.html");
-    routes.add_route("/blog/1", "static/blog/first_day.html");
-    routes.add_route("/blog/2", "static/blog/second_day.html");
-    routes.add_route("/blog/3", "static/blog/third_day.html");
-    routes.add_route("/blog/4", "static/blog/forth_day.html");
-//    routes.add_route("/404", "static/404.html");
+    routes.add_route(index());
+    routes.add_route(blog());
+    routes.add_route(blog1());
+    routes.add_route(blog2());
+    routes.add_route(blog3());
+    routes.add_route(blog4());
+    routes.add_route(blog5());
 
-    let configuration = Config {
-        bind_path: "138.197.210.225:80",
-//        bind_path: "127.0.0.1:8080",
-//        base_path: "/home/ltoshchev/programming/rust/glotitude_hq/src/",
-        static_uri_pref: "/static/",
-        base_path: "/var/www/gl/src/",
-        routes,
-    };
+    let configuration = Config::new();
 
-    let server = Ctchi::new(configuration);
+    let server = Ctchi::new(configuration, routes);
     server.start();
 }
