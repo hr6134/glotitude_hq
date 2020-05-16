@@ -1,1 +1,1 @@
-Sources for Glotitude HQ site
+Sources for Glotitude HQ site: http://glotitude.datamonkey.pro/
