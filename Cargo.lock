@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "ctchi"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ctchi_codegen 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -21,7 +21,7 @@ dependencies = [
 name = "glotitude_hq"
 version = "0.1.0"
 dependencies = [
- "ctchi 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ctchi 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ctchi_codegen 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -57,7 +57,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
-"checksum ctchi 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b487a5e3fd45d947ac214067e025de9b23e7a8cc8df69710f935cdbd389075ad"
+"checksum ctchi 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4ecc1379ba944b4b50e88769825f9b9ae332cb2dacfe9bd7906ef39cd4c1a8b9"
 "checksum ctchi_codegen 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d4426a555a0da4603608237be5897f87909d61f74baae2d4295342927a4a9116"
 "checksum proc-macro2 1.0.12 (registry+https://github.com/rust-lang/crates.io-index)" = "8872cf6f48eee44265156c111456a700ab3483686b3f96df4cf5481c89157319"
 "checksum quote 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "42934bc9c8ab0d3b273a16d8551c8f0fcff46be73276ca083ec2414c15c4ba5e"

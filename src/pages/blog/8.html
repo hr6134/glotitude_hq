@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. День восьмой (больше макросов богу макросов)</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+<div class="header">
+    <a href="/">Home</a>
+    <a href="/blog">Блог</a>
+</div>
+
+<div class="content">
+    <h4 class="article_title">Ctchi. День восьмой (больше макросов богу макросов)</h4>
+
+    <p>
+        Больше макросов, богу макросов.
+    </p>
+
+    <p>
+        Настало время доделать правильный роутинг. Пришлось сжать зубы и снова погрузиться в макросы. Передо мной стояли
+        две цели: научиться передавать параметры из урлов в метод и начать использовать тело метода для генерации ответа.
+    </p>
+
+    <p>
+        Для этого, в процедурном макросе надо было сгенерить: оригинальную функцию, сгенерить функцию, которая будет парсить URL и
+        передавать параметры в оригинальную функцию, и третья простая функция, которая создаёт Route. Плюс нужен обычный
+        макрос, который умеет по названию оригинальной функции, вызывать ту, что генерит Route. Меньше слов, больше кода:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[proc_macro_attribute]
+                pub fn route(args: TokenStream, input: TokenStream) -&#x3E; TokenStream {
+                    let original_func = syn::parse_macro_input!(input as syn::ItemFn);
+
+                    let attrs = parse_macro_input!(args as AttributeArgs);
+
+                    let path = match &#x26;attrs[0] {
+                        NestedMeta::Lit(syn::Lit::Str(lit)) =&#x3E; Ok(lit.value()),
+                        _ =&#x3E; Err(&#x22;No path&#x22;),
+                    }.unwrap();
+
+                    let original_func_ident = &#x26;original_func.sig.ident;
+                    let inputs = &#x26;original_func.sig.inputs;
+
+                    let mut fun_args = Vec::&#x3C;Ident&#x3E;::with_capacity(inputs.len());
+                    let mut fun_args_str = Vec::&#x3C;String&#x3E;::with_capacity(inputs.len());
+
+                    for i in inputs {
+                        let input_pat = match i {
+                            FnArg::Typed(PatType{attrs, pat, colon_token, ty}) =&#x3E; pat,
+                            _ =&#x3E; panic!(&#x22;&#x22;),
+                        };
+
+                        if let syn::Pat::Ident(PatIdent { attrs, by_ref, mutability, ident, subpat }) = input_pat.as_ref() {
+                            fun_args.push(Ident::new(&#x26;ident.to_string(), Span::call_site()));
+                            fun_args_str.push(ident.to_string());
+                        }
+                    }
+
+                    let action_ident = Ident::new(
+                        &#x26;format!(&#x22;ctchi_action_{}&#x22;, original_func_ident),
+                        Span::call_site()
+                    );
+                    let routing_ident = Ident::new(
+                        &#x26;format!(&#x22;ctchi_routing_{}&#x22;, original_func_ident),
+                        Span::call_site()
+                    );
+
+                    let gen = quote! {
+                        #original_func
+
+                        fn #action_ident(url: &#x26;str) -&#x3E; String {
+                            use regex::Regex;
+
+                            let url_replacer = Regex::new(r&#x22;\{(?P&#x3C;first&#x3E;.+?)\}&#x22;).unwrap();
+                            let regex_url = url_replacer.replace_all(#path, &#x22;(?P&#x3C;$first&#x3E;.+)&#x22;);
+
+                            let parser = Regex::new(&#x26;regex_url).unwrap();
+
+                            #(let #fun_args = parser.captures(url).unwrap().name(#fun_args_str).unwrap().as_str(); )*
+
+                            #original_func_ident(#(#fun_args),*)
+                        }
+
+                        fn #routing_ident() -&#x3E; Route {
+                            Route {
+                                path: #path,
+                                render_action: #action_ident,
+                            }
+                        }
+                    };
+
+                    gen.into()
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Где original_func - это оригинальная функция, благо её можно генерить просто из исходников. action_ident - функция,
+        которая парсит урл на основе строки переданной в макрос route и названий параметров оригинальной функции. И
+        routing_ident - просто создаёт роут, она переехала из прошлого макроса static_page практически без изменений.
+    </p>
+
+    <p>
+        Понятно что без проблем не обошлось. Нельзя так просто взять и достать имена параметров функции. Ад с паттерн
+        патчингом внутри цикла for i in inputs - это больно. Я, наверное, что-то не понимаю. Особенно,
+        когда в debug принте не видно из какого модуля берётся та или иная структура.
+    </p>
+
+    <p>
+        Пришлось собирать два списка fun_args и fun_args_str, чтобы функция action_ident могла собрать все нужные
+        параметры. Иначе получалось, что мы генерим вызов original_func в рантайме, а оно конечно так не может.
+    </p>
+
+    <p>
+        Всё ещё неописаны обычные макросы переименования метода и рендера страницы, но про это будет следующая статья :)
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.05.19
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>
