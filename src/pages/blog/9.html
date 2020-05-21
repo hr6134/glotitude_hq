@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. День девятый</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+<div class="header">
+    <a href="/">Home</a>
+    <a href="/blog">Блог</a>
+</div>
+
+<div class="content">
+    <h4 class="article_title">Ctchi. День девятый</h4>
+
+    <p>
+        Ок, я могу смириться с неочевидным на первый взгляд временем жизни и правилами владения. Я могу смириться с тем,
+        что макросы, по одному богу ведомой причине, должны находиться в отдельном пакете. Но что действительно ужасно,
+        это когда приложение запускается и работает, а crate publish выдаёт тебе неочевидные ошибки. Rust у тебя
+        самая плохая система импортов, которую я когда либо видел. Разобраться с cmake и то проще, потому что всё очевидно,
+        тут, ты уже в ожидании испробовать новую версию код в проде, как меня обламывает тупой package manager :(
+    </p>
+
+    <p>
+        В общем, этот блог всё ещё на старой версии, но ниже будет рассказ о том, что же я сделал.
+    </p>
+
+    <p>
+        Во-первых, я сделал два утилитных макроса. Один рендерит страницу: просто читает файл по указанному пути. Но это
+        всё равно короче, чем каждый раз писать один и тот же код. Второй нужен для работы новой системы роутов,
+        фактически он подменяет одно названии функции на другое. Если помните прошлую статью, то функций три, и нужно
+        вызывать самую верхнеуровневую, которая создаёт Route.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                macro_rules! render {
+                    ($x:tt) =&#x3E; {
+                        {
+                            let content = fs::read_to_string($x).unwrap_or_else(|error| { error.to_string() });
+                            content
+                        }
+                    }
+                }
+
+                macro_rules! routes {
+                    ($x:ident) =&#x3E; {
+                        concat_idents!(ctchi_routing_, $x)
+                    }
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Я поменял соответствующим образом саму систему роутов: теперь там не HashMap, а обычный список, по которому мы
+        бежим и сравниваем урл с регуляркой. Регулярку мы строим на основе урла заданного в route.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                impl Routes {
+                    pub fn new() -&#x3E; Routes {
+                        let mut routes = Routes {
+                            routes: Vec::new(),
+                        };
+
+                        routes.add_route(Route {
+                            path: &#x22;/404&#x22;.to_string(),
+                            render_action: |url| {
+                                &#x22;404 Not Found&#x22;.to_string()
+                            },
+                        });
+
+                        routes
+                    }
+
+                    pub fn add_route(&#x26;mut self, route: Route) {
+                        let url_replacer = Regex::new(r&#x22;(?P&#x3C;first&#x3E;\{.+?\})&#x22;).unwrap();
+                        let regex_url = url_replacer.replace_all(&#x26;route.path, &#x22;.+?&#x22;);
+                        let string = format!(r&#x22;^{}/?$&#x22;, regex_url.to_string());
+                        self.routes.push(Route {
+                            path: string,
+                            render_action: route.render_action,
+                        });
+                    }
+
+                    pub fn get_route(&#x26;self, uri: &#x26;str) -&#x3E; &#x26;Route {
+                        for r in self.routes.iter() {
+                            let regex = Regex::new(&#x26;r.path).unwrap();
+                            if regex.is_match(uri) {
+                                return r
+                            }
+                        }
+
+                        self.get_route(&#x22;/404&#x22;)
+                    }
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Роут для 404 переместился в саму структуру. При этом логика работы со статикой осталась старая. Это немного
+        путает, потому что работа с урлами становится слишком разной. Когда разберусь как прокинуть путь к файлам и
+        статике в контроллеры, сделаю единообразно.
+    </p>
+
+    <p>
+        Как результат всего этого, я могу писать полноценные контроллеры и парсить параметры из урла. 9 разных
+        контроллеров, страниц блогов превращаются в:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[route(&#x22;/blog/{id}/&#x22;)]
+                fn blog(id: &#x26;str) -&#x3E; String {
+                    let page = format!(&#x22;/home/ltoshchev/programming/rust/ctchi/src/pages/blog/{}.html&#x22;, id);
+                    render!(page)
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Жду не дождусь момента, когда разберусь с пакетами и смогу опубликовать новую версию Ctchi. Ммммм. Как же будет
+        удобно писать после этого.
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.05.21
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>

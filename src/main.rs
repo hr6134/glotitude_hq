@@ -35,6 +35,9 @@ fn blog7() -> Route {}
 #[static_page("/blog/8", "blog/8.html")]
 fn blog8() -> Route {}
 
+#[static_page("/blog/9", "blog/9.html")]
+fn blog9() -> Route {}
+
 fn main() {
     let mut routes = Routes::new();
     routes.add_route(index());
@@ -47,6 +50,7 @@ fn main() {
     routes.add_route(blog6());
     routes.add_route(blog7());
     routes.add_route(blog8());
+    routes.add_route(blog9());
 
     let configuration = Config::new();
 

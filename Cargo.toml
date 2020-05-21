@@ -7,5 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ctchi = "0.10.0"
+ctchi = "0.11.0"
 ctchi_codegen = "0.1.0"
