@@ -1,59 +1,37 @@
+#![feature(concat_idents)]
+#[macro_use]
 extern crate ctchi;
 
-use ctchi::core::app::{Ctchi, Config};
+use std::fs;
+
+use ctchi::core::app::Ctchi;
 use ctchi::core::routes::{Routes, Route};
 
-use ctchi_codegen::static_page;
+use ctchi_codegen::route;
 
-#[static_page("/", "index.html")]
-fn index() -> Route {}
+#[route("/")]
+fn index()-> String {
+    render!("index.html")
+}
 
-#[static_page("/blog", "blog.html")]
-fn blog() -> Route {}
+#[route("/blog/")]
+fn blog_list()-> String {
+    render!("blog.html")
+}
 
-#[static_page("/blog/1", "blog/first_day.html")]
-fn blog1() -> Route {}
 
-#[static_page("/blog/2", "blog/second_day.html")]
-fn blog2() -> Route {}
-
-#[static_page("/blog/3", "blog/third_day.html")]
-fn blog3() -> Route {}
-
-#[static_page("/blog/4", "blog/forth_day.html")]
-fn blog4() -> Route {}
-
-#[static_page("/blog/5", "blog/fifth_day.html")]
-fn blog5() -> Route {}
-
-#[static_page("/blog/6", "blog/sixth_day.html")]
-fn blog6() -> Route {}
-
-#[static_page("/blog/7", "blog/seventh_day.html")]
-fn blog7() -> Route {}
-
-#[static_page("/blog/8", "blog/8.html")]
-fn blog8() -> Route {}
-
-#[static_page("/blog/9", "blog/9.html")]
-fn blog9() -> Route {}
+#[route("/blog/{id}/")]
+fn blog(id: &str) -> String {
+    let page = format!("blog/{}.html", id);
+    render!(page)
+}
 
 fn main() {
     let mut routes = Routes::new();
-    routes.add_route(index());
-    routes.add_route(blog());
-    routes.add_route(blog1());
-    routes.add_route(blog2());
-    routes.add_route(blog3());
-    routes.add_route(blog4());
-    routes.add_route(blog5());
-    routes.add_route(blog6());
-    routes.add_route(blog7());
-    routes.add_route(blog8());
-    routes.add_route(blog9());
+    routes.add_route(routes!(index)());
+    routes.add_route(routes!(blog_list)());
+    routes.add_route(routes!(blog)());
 
-    let configuration = Config::new();
-
-    let server = Ctchi::new(configuration, routes);
+    let server = Ctchi::new(routes);
     server.start();
 }

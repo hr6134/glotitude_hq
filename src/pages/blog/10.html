@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. День десятый</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+<div class="header">
+    <a href="/">Home</a>
+    <a href="/blog">Блог</a>
+</div>
+
+<div class="content">
+    <h4 class="article_title">Ctchi. День десятый</h4>
+
+    <p>
+        Это будет короткий пост :) очень короткий.
+        <b>UPD:</b> нет не будет, потому что я сделал красивый конфиг. ^_^"
+    </p>
+
+    <p>
+        Сумев отправить в crates.io новую версию ctchi, я начал переделывать glotitude_hq. В целом это не сложно: поменяй
+        роуты, переименуй файлы со статьями. В результате оказалось: у меня не подтягиваются макросы routes и render,
+        нужно добавлять в зависимости regex (он не подтянулся из ctchi), нужно включать эксперементальную фичу руками
+        (т.е. тоже не тянется из ctchi), отвалилась статика (из-за фикса с последним / в пути).
+    </p>
+
+    <p>
+        Два патча спустя всё работало как по маслу :) <s>Всё ещё открыт вопрос, как же мне брать путь до шаблонов из
+        конфигурации, ибо я вернулся к состоянию, когда мне надо менять путь при каждом релизе. Можно конечно добавить в
+        макрос render код, который читает текстовый конфиг, но выглядит как костыль.</s> Не успел я опубликовать статью,
+        как в голову пришла мысль, что я ведь могу использовать всемирно известный паттерн Singleton и дёргать конфиг
+        откуда моя душа пожелает.
+    </p>
+
+    <p>
+        Я ушёл гуглить и нагуглил сначала статью в доке
+        <a href="https://rust-embedded.github.io/book/peripherals/singletons.html">Singletons</a>, которая меня напугала.
+        А потом нашёл ответ на SoF <a href="https://stackoverflow.com/a/27826181">How do I create a global, mutable singleton?</a>,
+        которая напугала меня ещё сильнее. Серьёзно? Мы не можем сделать singleton без unsafe? оО Ну, раз не можем,
+        значит не можем. Просто скопировав код из SoF я получил свой конфиг, оставалось только раскидать его по коду. И
+        вот тут начались проблемы: поднимаю сервер, всё запускается, делаю запрос, он зависает. Оказалось что лок мьютекса
+        отпускается только в конце зоны видимости переменной, в результате его надо или дропать руками drop(), или
+        прокидывать по методам (а мы не можем это сделать везде, потому что макросы :( ). Значит дропы.
+    </p>
+
+    <p>
+        Смотрите какая красота получилась:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[route(&#x22;/&#x22;)]
+                fn index()-&#x3E; String {
+                    render!(&#x22;index.html&#x22;)
+                }
+
+                #[route(&#x22;/blog/&#x22;)]
+                fn blog_list()-&#x3E; String {
+                    render!(&#x22;blog.html&#x22;)
+                }
+
+
+                #[route(&#x22;/blog/{id}/&#x22;)]
+                fn blog(id: &#x26;str) -&#x3E; String {
+                    let page = format!(&#x22;blog/{}.html&#x22;, id);
+                    render!(page)
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Если интересен код самого синглетона, то вот он. Но разницы с примером из SoF, честно, никакой.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                #[derive(Clone)]
+                pub struct ConfigReader {
+                    // Since we will be used in many threads, we need to protect
+                    // concurrent access
+                    pub inner: Arc&#x3C;Mutex&#x3C;Config&#x3E;&#x3E;,
+                }
+
+                pub fn get_configuration() -&#x3E; ConfigReader {
+                    // Initialize it to a null value
+                    static mut SINGLETON: *const ConfigReader = 0 as *const ConfigReader;
+                    static ONCE: Once = Once::new();
+
+                    unsafe {
+                        ONCE.call_once(|| {
+                            // Make it
+                            let singleton = ConfigReader {
+                                inner: Arc::new(Mutex::new(Config::new())),
+                            };
+
+                            // Put it in the heap so it can outlive this call
+                            SINGLETON = mem::transmute(Box::new(singleton));
+                        });
+
+                        // Now we give out a copy of the data that is safe to use concurrently.
+                        (*SINGLETON).clone()
+                    }
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.05.22
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>
