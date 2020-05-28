@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. День двенадцатый (шаблонизатор, продолжение)</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+<div class="header">
+    <a href="/">Home</a>
+    <a href="/blog">Блог</a>
+</div>
+
+<div class="content">
+    <h4 class="article_title">Ctchi. День двенадцатый (шаблонизатор, продолжение)</h4>
+
+    <p>
+        Идея, что переписать существующий код легко, была наивной. Я потратил ещё один вечер на то, чтобы научиться
+        парсить свои теги шаблонизатора и собирать дерево. Теги были следующие: template (корневой тег, который хранит
+        в себе всю страницу, если его нет, вся страница считается обычным html тегом, т.е. просто текст хранящийся одной
+        нодой), import (позволяет вставлять другую страницу, она тоже может быть как шаблоном, так и обычным html файлом),
+        for (цикл по списку, [for i in list]), if (рендерит вложенный контент, если переданная ему переменная равна true)
+        и обычная переменная ([[value]]). Каждый тег кроме import и value имеет закрывающийся тег, который выглядит так же,
+        но начинается с end. Например, [template] [endtemplate].
+    </p>
+
+    <p>
+        Практически нет никакой валидации, т.е. при кривом шаблоне приложение упадёт. Если где-то в странице будет
+        находится [, то всё сломается. Никакого экранирования тоже нет. А ещё реализованы только теги template и import.
+        Что уже хорошо, потому что позволяет мне переиспользовать части шаблонов.
+    </p>
+
+    <p>
+        Вторая проблема это проброс параметров. Сейчас я реализовал trait Content, который возращает массив байт с
+        контентом тега. Для Html и Import тут всё легко, они самодостаточны. А вот If, For и [[value]], должны получать
+        данные извне и пока не ясно как это корректно сделать, возможно стоит расширить сигнатуру метода get_content.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                pub trait Content {
+                    fn get_content(&#x26;self) -&#x3E; Vec&#x3C;u8&#x3E;;
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Зато сама трансформация дерева тегов в строку оказывается тривиальной.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                pub fn write(root: &#x26;TemplateNode) -&#x3E; String {
+                    String::from_utf8(root.get_content()).unwrap()
+                }
+
+                impl Content for TemplateNode {
+                    fn get_content(&#x26;self) -&#x3E; Vec&#x3C;u8&#x3E; {
+                        match self {
+                            TemplateNode::CtchiTemplateTagNode(e) =&#x3E; e.get_content(),
+                            TemplateNode::HtmlNode(e) =&#x3E; e.get_content(),
+                            TemplateNode::CtchiValueNode(e) =&#x3E; e.get_content(),
+                            TemplateNode::CtchiForTagNode(e) =&#x3E; e.get_content(),
+                            TemplateNode::CtchiIfTagNode(e) =&#x3E; e.get_content(),
+                            TemplateNode::CtchiImportTagNode(e) =&#x3E; e.get_content(),
+                        }
+                    }
+                }
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        В целом я доволен. Не имея базы данных и храня все статьи в статичных html страницах, большой пользы от for и if
+        у меня нет. А вот import'а мне сильно не хватало. Конечно я доделаю шаблоны до конца, иначе это работа сделанная
+        на половину, но как промежуточный вариант получилось хорошо.
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.05.28
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>
