@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[template]
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +10,7 @@
 
 <div class="title"><h3>Glotitude HQ</h3></div>
 
-<div class="header">
-    <a href="/">Home</a>
-    <a href="/blog">Блог</a>
-</div>
+[import "header.html"/]
 
 <div class="content">
     <h4 class="article_title">Ctchi. День четвёртый</h4>
@@ -33,7 +30,7 @@
     <p>
         <code>
             <pre>
-                #[static_page("/", "index.html")]
+                #&#x5B;static_page("/", "index.html")&#x5D;
                 fn index()-> Route {}
             </pre>
         </code>
@@ -50,18 +47,18 @@
     <p>
         <code>
             <pre>
-                #[proc_macro_attribute]
+                #&#x5B;proc_macro_attribute&#x5D;
                 pub fn static_page(args: TokenStream, input: TokenStream) -&#x3E; TokenStream {
                     let func = syn::parse_macro_input!(input as syn::ItemFn);
 
                     let attrs = parse_macro_input!(args as AttributeArgs);
 
-                    let path = match &#x26;attrs[0] {
+                    let path = match &#x26;attrs&#x5B;0&#x5D; {
                         NestedMeta::Lit(syn::Lit::Str(lit)) =&#x3E; Ok(lit.value()),
                         _ =&#x3E; Err(&#x22;No path&#x22;),
                     }.unwrap();
 
-                    let file = match &#x26;attrs[1] {
+                    let file = match &#x26;attrs&#x5B;1&#x5D; {
                         NestedMeta::Lit(syn::Lit::Str(lit)) =&#x3E; Ok(lit.value()),
                         _ =&#x3E; Err(&#x22;No file&#x22;),
                     }.unwrap();
@@ -139,3 +136,4 @@
 </div>
 </body>
 </html>
+[endtemplate]

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[template]
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +10,7 @@
 
 <div class="title"><h3>Glotitude HQ</h3></div>
 
-<div class="header">
-    <a href="/">Home</a>
-    <a href="/blog">Блог</a>
-</div>
+[import "header.html"/]
 
 <div class="content">
     <h4 class="article_title">Ctchi. День одинадцатый (шаблонизатор)</h4>
@@ -46,8 +43,8 @@
                     let mut i = 1;
 
                     // read name
-                    while html_bytes[i] != b&#x27;&#x3E;&#x27; {
-                        name_bytes.push(html_bytes[i]);
+                    while html_bytes&#x5B;i&#x5D; != b&#x27;&#x3E;&#x27; {
+                        name_bytes.push(html_bytes&#x5B;i&#x5D;);
                         i += 1;
                     }
 
@@ -55,15 +52,15 @@
                     i += 1;
 
                     // read children
-                    while html_bytes[i+1] != b&#x27;/&#x27; {
-                        let child = self.parse(&#x26;html[i..html.len()]);
+                    while html_bytes&#x5B;i+1&#x5D; != b&#x27;/&#x27; {
+                        let child = self.parse(&#x26;html&#x5B;i..html.len()&#x5D;);
                         i += child.size;
 
                         children.push(child);
                     }
 
                     // read tag closing
-                    while html_bytes[i] != b&#x27;&#x3E;&#x27; {
+                    while html_bytes&#x5B;i&#x5D; != b&#x27;&#x3E;&#x27; {
                         i += 1;
                     }
 
@@ -105,10 +102,10 @@
                 }
 
                 // внутри функции парсинга выбираем, что мы будем парсить
-                let child = if html_bytes[i] == b'<' {
-                    self.parse_tag(&html[i..html.len()])
+                let child = if html_bytes&#x5B;i&#x5D; == b'<' {
+                    self.parse_tag(&html&#x5B;i..html.len()&#x5D;)
                 } else {
-                    self.parse_text(&html[i..html.len()])
+                    self.parse_text(&html#&#x5B;i..html.len()&#x5D;)
                 };
 
                 // размер теперь тоже придётся получать по другому. child передаём по ссылке, чтобы не происходил move
@@ -140,3 +137,4 @@
 </div>
 </body>
 </html>
+[endtemplate]

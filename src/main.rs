@@ -22,7 +22,7 @@ fn blog_list()-> String {
 
 #[route("/blog/{id}/")]
 fn blog(id: &str) -> String {
-    let page = format!("blog/{}.html", id);
+    let page = &format!("blog/{}.html", id);
     render!(page)
 }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[template]
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +10,7 @@
 
 <div class="title"><h3>Glotitude HQ</h3></div>
 
-<div class="header">
-    <a href="/">Home</a>
-    <a href="/blog">Блог</a>
-</div>
+[import "header.html"/]
 
 <div class="content">
     <h4 class="article_title">Ctchi. День пятый</h4>
@@ -26,22 +23,22 @@
     <p>
         <code>
             <pre>
-                #[static_page("/", "index.html")]
+                #&#x5B;static_page("/", "index.html")&#x5D;
                 fn index() -> Route {}
 
-                #[static_page("/blog", "blog.html")]
+                #&#x5B;static_page("/blog", "blog.html")&#x5D;
                 fn blog() -> Route {}
 
-                #[static_page("/blog/1", "blog/first_day.html")]
+                #&#x5B;static_page("/blog/1", "blog/first_day.html")&#x5D;
                 fn blog1() -> Route {}
 
-                #[static_page("/blog/2", "blog/second_day.html")]
+                #&#x5B;static_page("/blog/2", "blog/second_day.html")&#x5D;
                 fn blog2() -> Route {}
 
-                #[static_page("/blog/3", "blog/third_day.html")]
+                #&#x5B;static_page("/blog/3", "blog/third_day.html")&#x5D;
                 fn blog3() -> Route {}
 
-                #[static_page("/blog/4", "blog/forth_day.html")]
+                #&#x5B;static_page("/blog/4", "blog/forth_day.html")&#x5D;
                 fn blog4() -> Route {}
             </pre>
         </code>
@@ -113,3 +110,4 @@
 </div>
 </body>
 </html>
+[endtemplate]

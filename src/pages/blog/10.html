@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[template]
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +10,7 @@
 
 <div class="title"><h3>Glotitude HQ</h3></div>
 
-<div class="header">
-    <a href="/">Home</a>
-    <a href="/blog">Блог</a>
-</div>
+[import "header.html"/]
 
 <div class="content">
     <h4 class="article_title">Ctchi. День десятый</h4>
@@ -56,18 +53,18 @@
     <p>
         <code>
             <pre>
-                #[route(&#x22;/&#x22;)]
+                #&#x5B;route(&#x22;/&#x22;)&#x5D;
                 fn index()-&#x3E; String {
                     render!(&#x22;index.html&#x22;)
                 }
 
-                #[route(&#x22;/blog/&#x22;)]
+                #&#x5B;route(&#x22;/blog/&#x22;)&#x5D;
                 fn blog_list()-&#x3E; String {
                     render!(&#x22;blog.html&#x22;)
                 }
 
 
-                #[route(&#x22;/blog/{id}/&#x22;)]
+                #&#x5B;route(&#x22;/blog/{id}/&#x22;)&#x5D;
                 fn blog(id: &#x26;str) -&#x3E; String {
                     let page = format!(&#x22;blog/{}.html&#x22;, id);
                     render!(page)
@@ -83,7 +80,7 @@
     <p>
         <code>
             <pre>
-                #[derive(Clone)]
+                #&#x5B;derive(Clone)&#x5D;
                 pub struct ConfigReader {
                     // Since we will be used in many threads, we need to protect
                     // concurrent access
@@ -125,3 +122,4 @@
 </div>
 </body>
 </html>
+[endtemplate]
