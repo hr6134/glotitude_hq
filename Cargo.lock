@@ -10,7 +10,7 @@ dependencies = [
 
 [[package]]
 name = "ctchi"
-version = "0.13.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ctchi_codegen 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -31,7 +31,7 @@ dependencies = [
 name = "glotitude_hq"
 version = "0.1.0"
 dependencies = [
- "ctchi 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ctchi 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ctchi_codegen 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -103,7 +103,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
 "checksum aho-corasick 0.7.10 (registry+https://github.com/rust-lang/crates.io-index)" = "8716408b8bc624ed7f65d223ddb9ac2d044c0547b6fa4b0d554f3a9540496ada"
-"checksum ctchi 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "77527507663ff47afafa5e05d0f9576dc8077fc1ecb45a5ac57bdb54e71e496e"
+"checksum ctchi 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9372ca138a281f1e5513e7bfa38bf405945fe4ccfe232919ea318ee9bb869b42"
 "checksum ctchi_codegen 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f6670d4a8304e5e4db986097c1cfc50456a5eca0254c5ff521b6aaa25ba1da53"
 "checksum lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 "checksum memchr 2.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3728d817d99e5ac407411fa471ff9800a778d88a24685968b36824eaf4bee400"

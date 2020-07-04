@@ -1,0 +1,198 @@
+[template]
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glotitude HQ. Ctchi. Много маленьких дней</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+[import "header.html"/]
+
+<div class="content">
+    <h4 class="article_title">Ctchi. Много маленьких дней</h4>
+
+    <p>
+        Я долго ничего не писал. Во-первых, у меня была неделя отпуска, потом была неделя дежурства. А до всего этого
+        я сделал очень много изменений в Ctchi, каждое из которых не заслуживает отдельной статьи, но все вместе их
+        можно описать.
+    </p>
+
+    <p>
+        Первое что я сделал, это добавил экранирование для квадратных скобок. Было очень больно записывать весь код на
+        расте в html encoding, иначе шаблонизатор очевидным образом падал (он ведь не понимает в каком случае скобка -
+        это начало шаблона а в каком нет, но даже если правильно разбить на токены и научить его, мы всё ещё может
+        хотеть отрисовывать в статье сами теги, как обычный html). Я некоторое время думал о том, как правильно сделать
+        экранирование: добавлял логику в парсинг, ловил крайние случае, - код стал запутанным. Правильный подход как
+        обычно был самым простым: регулярные выражения, - я просто стал прогонять всю страницу через регулярку с заменой.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                fn escape_page(html: &#x26;str) -&#x3E; String {
+                    let open_bracket_replacer = Regex::new(r&#x22;\\\[&#x22;).unwrap();
+                    let close_bracket_replacer = Regex::new(r&#x22;\\]&#x22;).unwrap();
+                    let open_replacer = open_bracket_replacer.replace_all(html, &#x22;&#x26;#x5B;&#x22;);
+                    let close_replacer = close_bracket_replacer.replace_all(open_replacer.as_ref(), &#x22;&#x26;#x5D;&#x22;);
+
+                    close_replacer.to_string()
+                }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Экранирование работало, но большой радости не приносило - тяжело расставлять слеши рядом с каждой скобкой в
+        коде. Поэтому я сделал новый тег \[code\] (кстати, в вёрстке этой страницы предыдущее слово как раз экранировано
+        ^_^, а в сниппете выше используется тег \[code\]). Если задуматься - это тоже очень простой тег, всё что между
+        \[code\] и \[endcode\] обычный html.
+    </p>
+
+    <p>
+        Дальше надо было доделать то, что я обещал в прошлой статье - оставшиеся теги. Начал я с тега \[if\], потому что
+        в нём всего один параметр. Но этот параметр надо было передавать, поэтому я расширил сигнатуру функции get_content,
+        добавив в неё контекст:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                fn get_content(&#x26;self, context: &#x26;HashMap&#x3C;String, Context&#x3E;) -&#x3E; Vec&#x3C;u8&#x3E;;
+
+                pub enum Context {
+                    Single(bool),
+                    Multi(Vec&#x3C;String&#x3E;),
+                }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Энум Multi был сделан с запасом для тега \[for\]. А логика тега была проста: передали true? Значит парсим детей.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                fn get_content(&#x26;self, context: &#x26;HashMap&#x3C;String, Context&#x3E;) -&#x3E; Vec&#x3C;u8&#x3E; {
+                    let mut result = Vec::new();
+
+                    let default_value = Context::BooleanValue(false);
+                    let context_value = match context.get(&#x26;self.var_name).unwrap_or(&#x26;default_value) {
+                        Context::BooleanValue(e) =&#x3E; *e,
+                        _ =&#x3E; panic!(&#x22;If tag should have boolean value in context&#x22;),
+                    };
+
+                    if context_value {
+                        for c in &#x26;self.children {
+                            result.append(&#x26;mut c.get_content(context));
+                        }
+                    }
+
+                    result
+                }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Дальше был тег с переменной, который просто искал подходящий ключ в переданном контексте и тег \[for\], который
+        ожидался самым сложным и так и получилось. На первой итерации я не смог сделать вложенные теги \[for\]. Фактически
+        я затирал контекст: мне надо было передавать значение переменной на каждой итерации, но это всё что я передавал.
+        Расширить внешний контекст никак не получалось. Классический Rust, то нельзя мутировать, то мувишь, то что не
+        смувить, то Copy трейт не реализован, в общем боль и страдания, поэтому первый подход был очень ограничен
+        по функционалу. На следующий день я решил сделать второй подход. Помучившись несколько часов, я сумел добавить
+        значения внешнего контекста во внутренний и жизнь заиграла новыми красками, теперь я мог сделать вот так:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                &#x3C;ul&#x3E;
+                [for i in numbers]
+                    [for j in names]
+                        &#x3C;li&#x3E;[[i]]: [[j]]&#x3C;/li&#x3E;
+                    [endfor]
+                    [[my_name]]
+                [endfor]
+                &#x3C;/ul&#x3E;
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        В контексте к этому моменту было уже три возможных значения. В код обработки тега \[for\] выглядел откровенно
+        ужасно:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                #[derive(Clone)]
+                pub enum Context {
+                    BooleanValue(bool),
+                    SingleValue(String),
+                    MultiValue(Vec&#x3C;String&#x3E;),
+                }
+
+                fn get_content(&#x26;self, context: &#x26;HashMap&#x3C;String, Context&#x3E;) -&#x3E; Vec&#x3C;u8&#x3E; {
+                    let mut result = Vec::new();
+
+                    let default_value = Context::MultiValue(Vec::new());
+                    let context_values = match context.get(&#x26;self.param_name).unwrap_or(&#x26;default_value) {
+                        Context::MultiValue(e) =&#x3E; e,
+                        _ =&#x3E; panic!(&#x22;For tag should have multivalue in context&#x22;),
+                    };
+
+                    for value in context_values {
+                        let mut inner_context = HashMap::&#x3C;String, Context&#x3E;::new();
+                        let local_var_name = &#x26;self.var_name;
+                        inner_context.insert(local_var_name.to_string(), Context::SingleValue(value.to_string()));
+                        for (k, v) in context {
+                            inner_context.insert(k.to_string(), v.clone());
+                        }
+                        for c in &#x26;self.children {
+                            result.append(&#x26;mut c.get_content(&#x26;inner_context));
+                        }
+                    }
+
+                    result
+                }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        В этот момент я был действительно доволен собой. У меня был фреймворк с шаблонизатором. И я решил написать
+        документацию, чтобы кто угодно мог прийти и воспользоваться этим фреймворком. Это заняло следующие пару дня.
+        В момент когда эта статья окажется на сайте, он будет работать на ctchi 0.18.0 и символизировать месячный путь,
+        который я прошёл от идеи до реализации. Я начал делать набросок базы данных и клиента для неё. Но мой сайт всё
+        ещё падает раз в пару дней, поэтому я видимо отвлекусь на написание логгера и дебаг.
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.07.04
+    </p>
+
+</div>
+
+<div class="footer">
+    Glotitude © 2020
+</div>
+</body>
+</html>
+[endtemplate]

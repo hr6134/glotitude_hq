@@ -2,7 +2,7 @@
 #[macro_use]
 extern crate ctchi;
 
-use std::fs;
+use std::collections::HashMap;
 
 use ctchi::core::app::Ctchi;
 use ctchi::core::routes::{Routes, Route};
