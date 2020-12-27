@@ -64,6 +64,7 @@
     <p>
         <code>
             <pre>
+            [code]
             pub fn start(&#x26;self) -&#x3E; std::io::Result&#x3C;()&#x3E; {
                 let listener = TcpListener::bind(self.config.bind_path)?;
 
@@ -73,6 +74,7 @@
                 }
                 Ok(())
             }
+            [endcode]
             </pre>
         </code>
     </p>
@@ -95,6 +97,7 @@
     <p>
         <code>
             <pre>
+            [code]
             enum HttpMethod {
                 GET,
                 POST,
@@ -128,13 +131,14 @@
                     body: String::new(),
                 }
             }
+            [endcode]
             </pre>
         </code>
     </p>
 
     <p>
         Я даже сделал enum для HTTP методов, сейчас они не принимают никакого участия в логике сервера, зато успешно его
-        кладут в случае неизвестного метода. Но мы пишем только первый заголовок, это тоже требуется починить.
+        кладут в случае неизвестного метода. Ещё мы пишем только первый заголовок, это тоже требуется починить.
     </p>
 
     <p>
@@ -174,9 +178,7 @@
 
 </div>
 
-<div class="footer">
-    Glotitude © 2020
-</div>
+[import "footer.html"/]
 </body>
 </html>
 [endtemplate]
