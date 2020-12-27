@@ -1,0 +1,2 @@
+bind_path=138.197.210.225:80
+base_path=/usr/src/glotitude_hq/src/pages/
