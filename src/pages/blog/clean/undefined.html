@@ -18,7 +18,7 @@
     <p>
         Недавно выступал с минидокладом перед коллегами, рассказывая про запахи в коде.
         Получилась неплохая презентация, но стало ясно, что можно копнуть глубже, не просто
-        рассказать: вот так делать плохо, делай вот так. А логику за каждым выбором. Причины,
+        рассказать: вот так делать плохо, делай вот так, а логику за каждым выбором. Причины,
         по которым из кода с запахом исчезает красота.
     </p>
 
@@ -38,7 +38,7 @@
         присвоили значение. Это не значит, что у переменной нет значения, это значит,
         что разработчик явно не указал значение. В примерах ниже переменные получают значение
         по умолчанию в момент декларирования, в случае JS - это undefined,
-        в случае Java - null для объектов ссылочного типа и 0 для int.
+        в случае Java - null для объектов ссылочного типа и 0 для int (в полях классов).
     </p>
 
 
@@ -70,7 +70,7 @@
                 [code]
                     class HttpMethod {
                       static GET = new HttpMethod('GET');
-                      static POST = new HttpMethod('GET');
+                      static POST = new HttpMethod('POST');
 
                       constructor(method) {
                         this.method = method;
@@ -252,7 +252,7 @@
     </p>
 
     <p>
-        1. Мы можем валидировать входные параметры функции.
+        1.1 Мы можем валидировать входные параметры функции.
         Если они не корректны, сразу бросаем исключение.
         Это сохраняет смысл программы: мы не знаем как
         обрабатывать запрос, который мы не можем распарсить.
@@ -280,6 +280,33 @@
                         httpMethod = HttpMethod.GET;
                       } else if (requestHeader[0] === 'POST') {
                         httpMethod = HttpMethod.POST;
+                      }
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        1.2 Можем и не выносить валидацию в отдельный метод, а добавить её в блок else.
+        Из плюсов, мы можем по стек трейсу сразу найти место обработки и поправить его.
+        Из минусов, валидация входных данных расползается по коду.
+        <code>
+            <pre>
+                [code]
+                    const parseRequest = (request) => {
+                      validateRequest(request);
+                      let requestHeader = request.split(' ');
+
+                      let httpMethod;
+                      if (requestHeader[0] === 'GET') {
+                        httpMethod = HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        httpMethod = HttpMethod.POST;
+                      } else {
+                        throw new Error(`No such http method: ${requestHeader[0]}`);
                       }
 
                       return new Request(httpMethod, requestHeader[1]);
@@ -377,7 +404,7 @@
     </p>
 
     <p class="signature">
-        by Glotitude 2020.12.28
+        by Glotitude 2020.12.29
     </p>
 
 </div>
