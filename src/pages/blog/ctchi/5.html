@@ -29,23 +29,23 @@
                 #&#x5B;static_page("/blog", "blog.html")&#x5D;
                 fn blog() -> Route {}
 
-                #&#x5B;static_page("/blog/1", "blog/first_day.html")&#x5D;
+                #&#x5B;static_page("/blog/ctchi/1", "blog/first_day.html")&#x5D;
                 fn blog1() -> Route {}
 
-                #&#x5B;static_page("/blog/2", "blog/second_day.html")&#x5D;
+                #&#x5B;static_page("/blog/ctchi/2", "blog/second_day.html")&#x5D;
                 fn blog2() -> Route {}
 
-                #&#x5B;static_page("/blog/3", "blog/third_day.html")&#x5D;
+                #&#x5B;static_page("/blog/ctchi/3", "blog/third_day.html")&#x5D;
                 fn blog3() -> Route {}
 
-                #&#x5B;static_page("/blog/4", "blog/forth_day.html")&#x5D;
+                #&#x5B;static_page("/blog/ctchi/4", "blog/forth_day.html")&#x5D;
                 fn blog4() -> Route {}
             </pre>
         </code>
     </p>
 
     <p>
-        Сразу виден простор для улучшения: можно сделать универсальную ссылку /blog/{id}/ и одну функцию, которая умеет
+        Сразу виден простор для улучшения: можно сделать универсальную ссылку /blog/ctchi/{id}/ и одну функцию, которая умеет
         доставать правильную статью в зависимости от параметра. Проблема в том, что Rust статически типизирован и я не
         могу хранить в одном списке методы с разными сигнатурами, а количество параметров напрямую влияет на неё. Я
         стараюсь не подсматривать решения в других проектах, но в данном случае я посмотрел на документацию rocket и

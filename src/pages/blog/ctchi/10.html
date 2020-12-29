@@ -58,13 +58,13 @@
                     render!(&#x22;index.html&#x22;)
                 }
 
-                #&#x5B;route(&#x22;/blog/&#x22;)&#x5D;
+                #&#x5B;route(&#x22;/blog/ctchi/&#x22;)&#x5D;
                 fn blog_list()-&#x3E; String {
                     render!(&#x22;blog.html&#x22;)
                 }
 
 
-                #&#x5B;route(&#x22;/blog/{id}/&#x22;)&#x5D;
+                #&#x5B;route(&#x22;/blog/ctchi/{id}/&#x22;)&#x5D;
                 fn blog(id: &#x26;str) -&#x3E; String {
                     let page = format!(&#x22;blog/{}.html&#x22;, id);
                     render!(page)

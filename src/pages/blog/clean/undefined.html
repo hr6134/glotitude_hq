@@ -1,0 +1,381 @@
+[template]
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Запахи. Не инициализированные переменные</title>
+
+    <link href="/static/css/main.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="title"><h3>Glotitude HQ</h3></div>
+
+[import "header.html"/]
+
+<div class="content">
+    <h4 class="article_title">Запахи. Не инициализированные переменные</h4>
+
+    <p>
+        Недавно выступал с минидокладом перед коллегами, рассказывая про запахи в коде.
+        Получилась неплохая презентация, но стало ясно, что можно копнуть глубже, не просто
+        рассказать: вот так делать плохо, делай вот так. А логику за каждым выбором. Причины,
+        по которым из кода с запахом исчезает красота.
+    </p>
+
+    <p>
+        Запахов в коде множество. Запах не обязательно означает плохой код или ошибку,
+        Он лишь показывает что к этому месту стоит присмотреться. Каждому из запахов хочется
+        посвятить отдельную статью, с примерами и контрпримерами.
+    </p>
+
+    <p>
+        И первым запахом будет один из самых спорных :) Не инициализированные переменные.
+    </p>
+
+    <p>
+        Во-первых, уточню, что я имею в виду под не инициализированными
+        переменными - это любая переменная, которой явно не
+        присвоили значение. Это не значит, что у переменной нет значения, это значит,
+        что разработчик явно не указал значение. В примерах ниже переменные получают значение
+        по умолчанию в момент декларирования, в случае JS - это undefined,
+        в случае Java - null для объектов ссылочного типа и 0 для int.
+    </p>
+
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                    // JS
+                    let counter; // undefined
+
+                    // Java
+                    int userAge; // 0
+                    String username; // null
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Первая проблема значений по умолчанию в том, что они не несут
+        смысла. undefined - буквально значит "не определена". Как можно
+        строить предположения о смысле программы, если смысл отсутствует
+        у используемых ей переменных? Посмотрим на пример ниже.
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                    class HttpMethod {
+                      static GET = new HttpMethod('GET');
+                      static POST = new HttpMethod('GET');
+
+                      constructor(method) {
+                        this.method = method;
+                      }
+                    }
+
+                    class Request {
+                      constructor(httpMethod, url) {
+                        this.method = httpMethod;
+                        this.url = url;
+                      }
+                    }
+
+                    const parseRequest = (request) => {
+                      let requestHeader = request.split(' ');
+
+                      let httpMethod;
+                      if (requestHeader[0] === 'GET') {
+                        httpMethod = HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        httpMethod = HttpMethod.POST;
+                      }
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        А теперь вопрос: что если мне придёт запрос <b>DELETE /user/1/ HTTP/1.1</b>?
+        Я смогу частично распарсить его и в Request у меня будет храниться url,
+        но не http method. Должен ли код вызвавший parseRequest упасть?
+        Должен ли он проверять httpMethod на undefined? Что он должен делать в этом случае?
+        Какой смысл несёт для меня результат функции? Это так называемый partially initialized object.
+        И фактически это мусор с которым ничего не сделать. Но и в случае когда url == undefined мы
+        не знаем что делать.
+    </p>
+
+    <p>
+        Отсутствие смысла заразно, как только часть моей программы теряет смысл, смысл теряется во
+        всех связанных с ней частях.
+    </p>
+
+    <p>
+        Вторая проблема в том, что компилятор тоже не знает что вы имели
+        в виду и при первом же использовании бросит ошибку (в рантайме О_О).
+        undefined и null часто используют как показатель отсутствия значения.
+        Но как можно отличить задуманное от ошибки? Мы допустили ошибку в
+        программе и у нас не парсится один из валидных методов? Нам прислали кривой запрос?
+    </p>
+
+    <p>
+        Хорошо, в JS помимо undefined есть null, который как раз решает эту проблему.
+        Если undefined, то это ошибка в логике программы, если null, то отсутствие значения.
+        И тут мы приходим к трейтьей проблеме: сложности использования.
+    </p>
+
+    <p>
+        Добавляя null в свой код, мы автоматически добавляем для него проверки.
+        Например код выше мог бы выглядеть как-то так:
+    </p>
+
+    <p>
+        <code>
+            <pre>
+                [code]
+                    const parseRequest = (request) => {
+                      let requestHeader = request.split(' ');
+
+                      let httpMethod = null;
+                      if (requestHeader[0] === 'GET') {
+                        httpMethod = HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        httpMethod = HttpMethod.POST;
+                      }
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+
+                    const runServer = () => {
+                      // ... here could be initialization
+                      while (true) {
+                        let requestStr = readRequest();
+                        let request = parseRequest(requestStr);
+                        if (request.httpMethod === null || request.url === null) {
+                          throw new Error("Wrong request");
+                        }
+                        // ...
+                      }
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        И теперь мы всегда должны проверять, что у нас вернул parseRequest.
+        Более того, чем больше будет у нас становиться класс Request, тем длинее будет проверка.
+    </p>
+
+    <p>
+        Что же делать, если мы не можем в момент декларации переменной узнать её значение?
+        Зависит от того в какому месте мы хотим решить проблему.
+    </p>
+
+    <p>
+        Если мы работаем с самой переменной:
+        <ol>
+            <li>Мы можем присвоить ей значение по умолчанию</li>
+            <li>Или унести её инициализацию в отдельный метод</li>
+        </ol>
+    </p>
+
+    <p>
+        Способ номер 1. Считаем, что по умолчанию нам приходит GET запрос.
+        Честно, в этом коде я бы не стал так делать, но есть множество мест,
+        особенно с машинами состояний, когда это отлично прокатит.
+        <code>
+            <pre>
+                [code]
+                    const parseRequest = (request) => {
+                      // ...
+
+                      // set GET as our default value
+                      let httpMethod = HttpMethod.GET;
+                      // ...
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Способ номер 2. Выносим парсинг http метода в отдельную функцию.
+        Бонусом может обернуть её в другую функцию, которая гарантирует, что нам
+        не вернётся undefined.
+        <code>
+            <pre>
+                [code]
+                    const notUndefined = (value) => {
+                      if (value === undefined) throw new Error("Value was undefined");
+
+                      return value;
+                    }
+
+                    const parseHttpMethod = (request) => {
+                      const requestHeader = request.split(' ');
+                      if (requestHeader[0] === 'GET') {
+                        return HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        return HttpMethod.POST;
+                      }
+
+                      return undefined;
+                    }
+
+                    const parseRequest = (request) => {
+                      // ...
+
+                      let httpMethod = parseHttpMethod(request);
+                      // or
+                      let httpMethod = notUndefined(parseHttpMethod(request));
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Два варианта выше рассматривают ситуацию с позиции самой переменной. Т.е. мы пытаемся
+        или вернуть ей смысл или открыто сказать что в некоторых ситуациях смысла откровенно нет.
+        Но мы можем унести решение этой проблемы на уровень самой функции.
+    </p>
+
+    <p>
+        1. Мы можем валидировать входные параметры функции.
+        Если они не корректны, мы сразу бросим исключение.
+        Это сохраняет смысл программы, так как мы не знаем как
+        обрабатывать запрос, который мы не можем распарсить.
+        <code>
+            <pre>
+                [code]
+                    const validateRequest = (request) => {
+                      let requestHeader = request.split(' ');
+
+                      if (requestHeader.length !== 3) {
+                        throw new Error(`Wrong header: '${request}'`);
+                      }
+
+                      if (HttpMethod.values().indexOf(requestHeader[0]) === -1) {
+                        throw new Error(`No such http method: ${requestHeader[0]}`);
+                      }
+                    }
+
+                    const parseRequest = (request) => {
+                      validateRequest(request);
+                      let requestHeader = request.split(' ');
+
+                      let httpMethod;
+                      if (requestHeader[0] === 'GET') {
+                        httpMethod = HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        httpMethod = HttpMethod.POST;
+                      }
+
+                      return new Request(httpMethod, requestHeader[1]);
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        2. Второй вариант ввести "монаду" Option/Result/Either, как только её не называют,
+        но смысл в принципе одинаковый. Есть контейнер, который может или содержать в себе
+        что-то, или не содержать ничего, но предоставлять тот же интерфейс, просто замоканый.
+        В примере ниже мы возвращаем None, когда не знаем как парсить и Option с результатом,
+        когда знаем. На основе результата мы строим свой ответ, который тоже обёрнут в Option.
+        Если мы продолжим передавать None по цепочке вызовов, то мы никогда не упадём, но и
+        делать ничего не будем. Чтобы это было настоящей монадой надо ещё сделать пару приседаний,
+        но и в таком виде подход должен быть понятен. Подробнее почитать посмотреть можно
+        <a href="https://jrsinclair.com/articles/2019/elegant-error-handling-with-the-js-either-monad/">тут</a>
+        и <a href=" https://www.youtube.com/watch?v=T6Os27MKUCQ">тут</a>.
+        <code>
+            <pre>
+                [code]
+                    class None {
+                      map(func) {
+                        return new None();
+                      }
+                    }
+
+                    class Option {
+                      constructor(value) {
+                        this.value = value;
+                      }
+
+                      static of(value) {
+                        return new Option(value)
+                      }
+
+                      static none() {
+                        return new None();
+                      }
+
+                      map(func) {
+                        return new Option(func(this.value));
+                      }
+                    }
+
+                    const parseRequest = (request) => {
+                      let requestHeader = request.split(' ');
+
+                      let httpMethod;
+                      if (requestHeader[0] === 'GET') {
+                        httpMethod = HttpMethod.GET;
+                      } else if (requestHeader[0] === 'POST') {
+                        httpMethod = HttpMethod.POST;
+                      }
+
+                      if (httpMethod === undefined) return Option.none();
+                      return Option.of(new Request(httpMethod, requestHeader[1]));
+                    }
+
+                    const runServer = () => {
+                      // ... here could be initialization
+                      while (true) {
+                        let requestStr = readRequest();
+                        let request = parseRequest(requestStr);
+                        // response is also Option or None
+                        let response = request.map(e => createResponse(e));
+                        // ...
+                      }
+                    }
+                [endcode]
+            </pre>
+        </code>
+    </p>
+
+    <p>
+        Почему же языки нам это разрешают? Не знаю, возможно это ошибка проектирования,
+        в конечном итоге не все языки разрешают. В Java ты можешь обявить переменную final
+        и компилятор проверит, что к моменту её использования она была инициализирована.
+        Rust так же разрешает декларировать переменную, но не разрешает её использовать,
+        TypeScript ругнётся или на то что она undefined или на то что у неё неверный тип.
+        В Python в целом это невозможная ситуация, там нет конструкции позволяющей декларировать,
+        но не инициализировать переменную. Си и плюсы называют это undefined behaviour и это,
+        пожалуй, самая плохая ситуация из всех возможных: компилятор на нас не ругнулся, в
+        рантайме при обращении к переменной мы гарантированно не упадём, может произойти буквально,
+        что угодно, - не надо так :(
+    </p>
+
+    <p class="signature">
+        by Glotitude 2020.12.28
+    </p>
+
+</div>
+
+[import "footer.html"/]
+</body>
+</html>
+[endtemplate]
